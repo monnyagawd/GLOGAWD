@@ -1,3 +1,3 @@
 # Glo's Lab
 
-TwoSource development preview. Booking and payment functionality is test-only. No actual appointments or payments are accepted. Original portfolio media and final service/deposit policies require approval.
+Development preview only. Sample dates, deposits and service durations are not confirmed business policies. No real bookings or payments. Original media is linked from the existing site; loading remains unverified. Run `npm test` to verify deposit calculations.

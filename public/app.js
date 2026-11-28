@@ -1,8 +1,39 @@
 import {services,imageFor,money,quote} from './catalog.js';
 const $=s=>document.querySelector(s),el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n};
 function addImage(target,src,label){const i=new Image();i.alt=label;i.loading='eager';i.decoding='async';i.style.visibility='hidden';i.onload=()=>{i.style.visibility='visible';const placeholder=target.querySelector('span');if(placeholder)placeholder.hidden=true;};i.onerror=()=>{i.remove();$('#asset-note').hidden=false;};target.append(i);i.src=src;}
+// The hero playlist was captured from the original site's Network tab.
+// Gallery playlists are candidate paths following the same source's video ID convention.
+const heroStream='https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQHQ672D2YNRECCN5GN/hls/playlist_360p.m3u8';
+const streamFor=id=>heroStream.replace('01M3FAYAQHQ672D2YNRECCN5GN',id);
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+let hlsLoader;
+function getHls(){
+ if(window.Hls)return Promise.resolve(window.Hls);
+ if(!hlsLoader)hlsLoader=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js';script.onload=()=>window.Hls?resolve(window.Hls):reject(Error('HLS unavailable'));script.onerror=reject;document.head.append(script);});
+ return hlsLoader;
+}
+const videoStyles=document.createElement('style');
+videoStyles.textContent='.original-motion{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;pointer-events:none}.original-motion.is-ready{opacity:1}.motion-toggle{position:absolute;z-index:3;right:14px;bottom:14px;border:1px solid #ffffff88;border-radius:30px;background:#111c;color:#fff;padding:10px 16px;font:12px Arial;cursor:pointer}.hero-motion-toggle{bottom:auto;top:18px;right:4vw}.motion-toggle[hidden]{display:none}#hero-image{width:100%;opacity:1}.hero-media:after{background:linear-gradient(90deg,#111112c9,transparent 80%),linear-gradient(0deg,#111112d9,transparent 70%)}@media(max-width:700px){.hero-media:after{background:linear-gradient(0deg,#111112e6 8%,#11111255 65%,transparent)}.gallery figure:nth-child(3){display:block;margin-top:0}.hero-motion-toggle{top:12px}}';
+document.head.append(videoStyles);
+function mountMotion(target,url,label,hero=false){
+ const v=document.createElement('video');v.className='original-motion';v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.preload='metadata';v.setAttribute('aria-label',label);target.append(v);
+ const toggle=el('button','motion-toggle'+(hero?' hero-motion-toggle':''),'Play video');toggle.hidden=true;toggle.type='button';(hero?document.querySelector('.hero'):target).append(toggle);
+ let initialized=false,visible=false,manualPause=false,manualPlay=false,failed=false,hls;
+ const play=()=>{if(visible&&!failed&&!manualPause&&(!reduced.matches||manualPlay))v.play().catch(()=>{});};
+ const fail=()=>{if(failed)return;failed=true;v.pause();hls?.destroy();v.remove();toggle.remove();const note=$('#asset-note');if(note)note.hidden=false;};
+ v.addEventListener('loadeddata',()=>{v.classList.add('is-ready');toggle.hidden=false;const p=target.querySelector('span');if(p)p.hidden=true;play();});
+ v.addEventListener('canplay',play);
+ v.addEventListener('play',()=>toggle.textContent='Pause video');
+ v.addEventListener('pause',()=>toggle.textContent='Play video');
+ v.addEventListener('error',fail);
+ toggle.onclick=()=>{if(v.paused){manualPause=false;manualPlay=true;play();}else{manualPause=true;v.pause();}};
+ const init=async()=>{if(initialized||failed)return;initialized=true;try{if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=url;}else{const Hls=await getHls();if(!Hls.isSupported())return fail();hls=new Hls({maxBufferLength:12,backBufferLength:8});hls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal)fail();});hls.on(Hls.Events.MANIFEST_PARSED,play);hls.loadSource(url);hls.attachMedia(v);}}catch{fail();}};
+ const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){init();play();}else v.pause();},{threshold:.15});observer.observe(target);
+ reduced.addEventListener('change',()=>{if(reduced.matches){manualPlay=false;v.pause();}else play();});
+}
 const hero=new Image();hero.onload=()=>$('#hero-image').style.backgroundImage='url("'+hero.src+'")';hero.onerror=()=>$('#asset-note').hidden=false;hero.src=imageFor('01M3FAYAQHQ672D2YNRECCN5GN');
-['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');m.append(el('span','','Portfolio photo pending'));addImage(m,imageFor(id),'Glo’s Lab portfolio');f.append(m,el('figcaption','','GLO ARCHIVE / 00'+(i+1)));$('#gallery').append(f);});
+mountMotion($('#hero-image'),heroStream,'Original Glo’s Lab hairstyle video',true);
+['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');m.append(el('span','','Portfolio clip pending'));addImage(m,imageFor(id),'Glo’s Lab portfolio');f.append(m,el('figcaption','','GLO ARCHIVE / 00'+(i+1)));$('#gallery').append(f);mountMotion(m,streamFor(id),'Glo’s Lab portfolio clip '+(i+1));});
 let category='All';function showServices(){const list=$('#service-list');list.replaceChildren();services.filter(s=>category==='All'||s.category===category).forEach(s=>{const b=el('button','service-row'),thumb=el('span','thumb','GL');addImage(thumb,imageFor(s.asset,s.kind),s.name);b.append(thumb,el('strong','',s.name),el('span','price',money(s.price)),el('span','arrow','↗'));b.onclick=()=>openBooking(s.id);list.append(b);});}
 ['All','Maintain','Transform','Style'].forEach(c=>{const b=el('button','filter'+(c==='All'?' active':''),c);b.onclick=()=>{category=c;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));showServices();};$('#filters').append(b);});showServices();
 const dialog=$('#booking');let state;function openBooking(id){state={step:id?1:0,id:id||null,day:null,time:null,accept:false};dialog.showModal();render();}document.querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>openBooking());$('.close').onclick=()=>dialog.close();

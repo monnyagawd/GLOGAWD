@@ -10,7 +10,7 @@ const heroStream='https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P
 const streamFor=id=>'/original-media/'+id+'/playlist_360p.m3u8';
 // Probe optional HD encodes, but preserve the known 360p fallback.
 async function chooseQuality(url,hero){
- const heights=hero?[1080,720,480]:[720,480];
+ const heights=hero?[720]:[720,480]; // The hero’s 720p rendition was verified; 1080p and 480p returned 403.
  if(navigator.connection?.saveData)return url;
  const candidates=await Promise.all(heights.map(async height=>{
   const candidate=url.replace('playlist_360p.m3u8','playlist_'+height+'p.m3u8');
@@ -73,9 +73,9 @@ function showServices(){
 }
 ['All','Maintain','Transform','Style'].forEach(c=>{const b=el('button','filter'+(c==='All'?' active':''),c);b.setAttribute('aria-pressed',String(c==='All'));b.onclick=()=>{category=c;document.querySelectorAll('.filter').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});showServices();};$('#filters').append(b);});showServices();
 const dialog=$('#booking');let state,opener;
-function openBooking(id){opener=document.activeElement;state={step:id?1:0,id:id||null,day:null,time:null,accept:false,month:0};if(!dialog.open)dialog.showModal();render(true);}
+function openBooking(id){opener=document.activeElement;state={step:id?1:0,id:id||null,day:null,time:null,accept:false,month:0};if(!dialog.open)dialog.showModal();document.body.classList.add('booking-open');render(true);}
 document.querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>openBooking());$('.close').onclick=()=>dialog.close();
-dialog.addEventListener('close',()=>{opener?.focus({preventScroll:true});});
+dialog.addEventListener('close',()=>{document.body.classList.remove('booking-open');opener?.focus({preventScroll:true});});
 function row(label,value,cls=''){const r=el('div','summary-row '+cls);r.append(el('span','',label),el('strong','',value));return r;}
 function setStep(step){state.step=step;render(true);}
 function fmtDate(d){return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});}
@@ -92,16 +92,16 @@ function dateCalendar(body,s){
  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>grid.append(el('span','weekday',d)));
  for(let i=0;i<base.getUTCDay();i++)grid.append(el('span','calendar-empty'));
  const days=new Date(Date.UTC(year,month+1,0)).getUTCDate();
- for(let n=1;n<=days;n++){const d=new Date(Date.UTC(year,month,n,12)),key=dateKey(d),b=el('button','calendar-day'+(state.day===key?' selected':''),String(n));b.disabled=d<firstAvailable||d>endAvailable;b.setAttribute('aria-label',fmtDate(d));b.setAttribute('aria-pressed',String(state.day===key));b.onclick=()=>{state.day=key;state.time=null;state.accept=false;render();};grid.append(b);}
+ for(let n=1;n<=days;n++){const d=new Date(Date.UTC(year,month,n,12)),key=dateKey(d),b=el('button','calendar-day'+(state.day===key?' selected':''),String(n));b.disabled=d<firstAvailable||d>endAvailable;b.setAttribute('aria-label',fmtDate(d));b.setAttribute('aria-pressed',String(state.day===key));b.onclick=()=>{state.day=key;state.time=null;state.accept=false;render();const first=$('.slot');if(first){first.focus({preventScroll:true});$('.time-heading')?.scrollIntoView({block:'nearest',behavior:'instant'});}};grid.append(b);}
  body.append(toolbar,grid);
- if(state.day){body.append(el('h5','time-heading','Sample times · '+selectedDate()));const slots=el('div','slots');[9,10,11,13,14,15].filter(h=>h*60+s.minutes<=1080).forEach(h=>{const t=(h>12?h-12:h)+':00 '+(h>=12?'PM':'AM');const b=el('button','slot'+(state.time===t?' selected':''),t);b.setAttribute('aria-pressed',String(state.time===t));b.onclick=()=>{state.time=t;state.accept=false;render();};slots.append(b);});body.append(slots);}
+ if(state.day){body.append(el('h5','time-heading','Sample times · '+selectedDate()));const slots=el('div','slots');[9,10,11,13,14,15].filter(h=>h*60+s.minutes<=1080).forEach(h=>{const t=(h>12?h-12:h)+':00 '+(h>=12?'PM':'AM');const b=el('button','slot'+(state.time===t?' selected':''),t);b.setAttribute('aria-pressed',String(state.time===t));b.onclick=()=>{state.time=t;state.accept=false;render();$('.slot.selected')?.focus({preventScroll:true});};slots.append(b);});body.append(slots);}
 }
 function render(focus=false){
  const {step,id,day,time}=state,s=services.find(x=>x.id===id),body=$('#booking-content'),foot=$('#booking-footer'),steps=$('#steps');body.replaceChildren();foot.replaceChildren();steps.replaceChildren();
  const request=!!s&&s.deposit===null;
  const labels=request?['Service','Details','Review']:['Service','Schedule','Review','Deposit'];
  labels.forEach((x,i)=>{const item=el('div','step'+(step>=i?' active':''),(i+1)+'. '+x);if(step===i)item.setAttribute('aria-current','step');steps.append(item);});
- if(focus){dialog.scrollTop=0;body.focus({preventScroll:true});}
+ if(focus){body.scrollTop=0;body.focus({preventScroll:true});}
  const back=el('button','back',step===0?'Close':'← Back');back.onclick=()=>{if(step===0)dialog.close();else setStep(step-1);};foot.append(back);
  let next,disabled=false,action;
  if(step===0){
@@ -126,7 +126,7 @@ function render(focus=false){
  function complete(isRequest){
   const receipt=el('div','demo-receipt');receipt.append(el('div','receipt-mark','✓'),el('span','receipt-kicker',isRequest?'INQUIRY PREVIEW COMPLETE':'BOOKING PREVIEW COMPLETE'),el('h4','','You’re one step closer to your next Glo.'),row('Service',s.name));
   if(!isRequest){const q=quote(state.id);receipt.append(row('Sample appointment',selectedDate()+' · '+state.time),row('Simulated deposit',money(q.deposit)),row('Remaining balance',money(q.balance)));}
-  receipt.append(el('p','notice','Demo complete. No real appointment, inquiry or payment was submitted.'));body.replaceChildren(receipt);foot.replaceChildren();const again=el('button','back','Explore another service'),done=el('button','next','Done');again.onclick=()=>{state={step:0,id:null,day:null,time:null,accept:false,month:0};render(true);};done.onclick=()=>dialog.close();foot.append(again,done);dialog.scrollTop=0;body.focus({preventScroll:true});
+  receipt.append(el('p','notice','Demo complete. No real appointment, inquiry or payment was submitted.'));body.replaceChildren(receipt);foot.replaceChildren();const again=el('button','back','Explore another service'),done=el('button','next','Done');again.onclick=()=>{state={step:0,id:null,day:null,time:null,accept:false,month:0};render(true);};done.onclick=()=>dialog.close();foot.append(again,done);body.scrollTop=0;body.focus({preventScroll:true});
  }
 }
 

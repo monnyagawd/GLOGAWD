@@ -1,1 +1,43 @@
-{"framework":null,"outputDirectory":"public","buildCommand":"","installCommand":"","headers":[{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"},{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"no-referrer"}]}]}
+{
+  "framework": null,
+  "outputDirectory": "public",
+  "buildCommand": "",
+  "installCommand": "",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/original-media/01M3FAYAQHQ672D2YNRECCN5GN/:path*",
+      "destination": "https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQHQ672D2YNRECCN5GN/hls/:path*"
+    },
+    {
+      "source": "/original-media/01M3FAYAQGETJX06P8PVQT7169/:path*",
+      "destination": "https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQGETJX06P8PVQT7169/hls/:path*"
+    },
+    {
+      "source": "/original-media/01M3FAYAQGM74HMJV0TQW1XT8N/:path*",
+      "destination": "https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQGM74HMJV0TQW1XT8N/hls/:path*"
+    },
+    {
+      "source": "/original-media/01M3FAYAQHSN1PG2J9KM3PT506/:path*",
+      "destination": "https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQHSN1PG2J9KM3PT506/hls/:path*"
+    }
+  ]
+}

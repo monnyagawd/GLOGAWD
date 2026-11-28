@@ -11,7 +11,8 @@ let response;for(let attempt=0;attempt<3;attempt++){try{response=await fetch(bas
 if(!response?.ok)throw Error('Source unavailable '+id);
 const bytes=Buffer.from(await response.arrayBuffer());if(bytes.length<10000)throw Error('Source too small');await writeFile(temp,bytes);
 const mp4=join('public/motion',id+'.mp4'),webp=join('public/motion',id+'.webp');
-run(['-i',temp,'-map','0:v:0','-an','-c:v','libx264','-pix_fmt','yuv420p','-preset','veryfast','-crf','22','-movflags','+faststart',mp4]);
-run(['-i',temp,'-an','-t','8','-vf','fps=12,scale=360:-2:flags=lanczos','-c:v','libwebp_anim','-loop','0','-quality','67',webp]);
+run(['-i',temp,'-map','0:v:0','-an','-c:v','copy','-movflags','+faststart',mp4]);
+run(['-i',temp,'-an','-t','6','-vf','fps=12,scale=720:-2:flags=lanczos','-c:v','libwebp_anim','-loop','0','-quality','82',webp]);
+run(['-ss','0.5','-i',temp,'-frames:v','1','-q:v','2',join('public/motion',id+'.jpg')]);
 console.log('MOTION READY',id,(await stat(mp4)).size,(await stat(webp)).size);
 }catch(e){console.warn('MOTION ERROR',id,e.message);throw e;}finally{await rm(temp,{force:true});}}

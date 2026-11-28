@@ -50,7 +50,7 @@ function mountMotion(target,url,label,hero=false){
 }
 const hero=new Image();hero.onload=()=>{$('#hero-image').dataset.poster='ready';$('#hero-image').style.backgroundImage='url("'+hero.src+'")';};hero.onerror=()=>{$('#hero-image').dataset.poster='failed';refreshMedia($('#hero-image'));};hero.src=imageFor('01M3FAYAQHQ672D2YNRECCN5GN');
 mountMotion($('#hero-image'),streamFor('01M3FAYAQHQ672D2YNRECCN5GN'),'Original Glo’s Lab hairstyle video',true);
-['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');const placeholder=el('span','gallery-fallback','GLO / FILM '+String(i+1).padStart(2,'0'));m.append(placeholder);addImage(m,imageFor(id),'Glo’s Lab portfolio');const cap=el('figcaption');cap.append(el('span','','THE GLO ARCHIVE'),el('span','','0'+(i+1)+' / MOTION'));f.append(m,cap);$('#gallery').append(f);mountMotion(m,streamFor(id),'Glo’s Lab portfolio clip '+(i+1));});
+['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');const placeholder=el('span','gallery-fallback','GLO / FILM '+String(i+1).padStart(2,'0'));m.append(placeholder);addImage(m,imageFor(id),'Glo’s Lab portfolio');const cap=el('figcaption');cap.append(el('span','','GLO ARCHIVE'),el('span','','FILM / 0'+(i+1)));f.append(m,cap);$('#gallery').append(f);mountMotion(m,streamFor(id),'Glo’s Lab portfolio clip '+(i+1));});
 const serviceText={
  extensions:'Explore a loc extension appointment.',
  repairs:'Request details for individual loc repair.',

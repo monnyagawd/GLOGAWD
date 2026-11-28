@@ -1,1 +1,16 @@
-{"name":"glo-lab-studio","private":true,"version":"0.1.0","type":"module","scripts":{"test":"node --test tests/*.test.mjs"},"engines":{"node":">=22"}}
+{
+  "name": "glo-lab-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build-motion.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@ffmpeg-installer/linux-x64": "4.1.0"
+  }
+}

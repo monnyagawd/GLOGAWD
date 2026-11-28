@@ -1,8 +1,8 @@
 {
   "framework": null,
   "outputDirectory": "public",
-  "buildCommand": "",
-  "installCommand": "",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --no-audit --no-fund",
   "headers": [
     {
       "source": "/(.*)",

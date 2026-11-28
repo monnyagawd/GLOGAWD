@@ -5,6 +5,17 @@ function addImage(target,src,label){const i=new Image();i.alt=label;i.loading='e
 // Gallery playlists are candidate paths following the same source's video ID convention.
 const heroStream='https://d2kt395i2p6b75.cloudfront.net/01M3FAY5W6SYPV4PK9RCTR4P7T/media/videos/01M3FAYAQHQ672D2YNRECCN5GN/hls/playlist_360p.m3u8';
 const streamFor=id=>'/original-media/'+id+'/playlist_360p.m3u8';
+// Probe optional HD encodes, but preserve the known 360p fallback.
+async function chooseQuality(url,hero){
+ const heights=hero?[1080,720,480]:[720,480];
+ if(navigator.connection?.saveData)return url;
+ const candidates=await Promise.all(heights.map(async height=>{
+  const candidate=url.replace('playlist_360p.m3u8','playlist_'+height+'p.m3u8');
+  const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),2500);
+  try{const res=await fetch(candidate,{signal:ctrl.signal});if(!res.ok)return null;const body=await res.text();return body.trimStart().startsWith('#EXTM3U')?candidate:null;}catch{return null;}finally{clearTimeout(timeout);}
+ }));
+ return candidates.find(Boolean)||url;
+}
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let hlsLoader;
 function getHls(){
@@ -18,17 +29,19 @@ document.head.append(videoStyles);
 function mountMotion(target,url,label,hero=false){
  const v=document.createElement('video');v.className='original-motion';v.muted=true;v.defaultMuted=true;v.autoplay=!reduced.matches;v.loop=true;v.playsInline=true;v.setAttribute('muted','');v.setAttribute('playsinline','');v.preload='metadata';v.setAttribute('aria-label',label);target.append(v);
  const toggle=el('button','motion-toggle'+(hero?' hero-motion-toggle':''),'Play video');toggle.hidden=true;toggle.type='button';(hero?document.querySelector('.hero'):target).append(toggle);
- let initialized=false,visible=hero,manualPause=false,manualPlay=false,failed=false,hls;
+ let initialized=false,visible=hero,manualPause=false,manualPlay=false,failed=false,hls,activeUrl=url,fallbackUsed=false;
  const report=(message)=>{target.dataset.playback=message;console.info('[Glo motion]',label,message);};report('waiting');
  const play=()=>{if(visible&&!failed&&!manualPause&&(!reduced.matches||manualPlay))v.play().catch(e=>report('play rejected: '+e.name));};
  const fail=(reason='media unavailable')=>{if(failed)return;report(typeof reason==='string'?reason:'media error');failed=true;v.pause();hls?.destroy();v.remove();toggle.remove();const note=$('#asset-note');if(note)note.hidden=false;};
  v.addEventListener('loadeddata',()=>{v.classList.add('is-ready');toggle.hidden=false;const p=target.querySelector('span');if(p)p.hidden=true;play();});
  v.addEventListener('canplay',play);
- v.addEventListener('playing',()=>report('playing'));v.addEventListener('play',()=>toggle.textContent='Pause video');
+ v.addEventListener('playing',()=>{target.dataset.videoResolution=v.videoWidth+'x'+v.videoHeight;report('playing '+target.dataset.videoResolution);});v.addEventListener('play',()=>toggle.textContent='Pause video');
  v.addEventListener('pause',()=>toggle.textContent='Play video');
- v.addEventListener('error',fail);
+ v.addEventListener('error',()=>recover('native media error'));
  toggle.onclick=()=>{if(v.paused){manualPause=false;manualPlay=true;play();}else{manualPause=true;v.pause();}};
- const init=async()=>{if(initialized||failed)return;initialized=true;try{if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=url;}else{const Hls=await getHls();if(!Hls.isSupported())return fail();hls=new Hls({maxBufferLength:12,backBufferLength:8});hls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal)fail(data.type+': '+data.details);});hls.on(Hls.Events.MANIFEST_PARSED,play);hls.loadSource(url);hls.attachMedia(v);}}catch{fail();}};
+ const recover=(reason)=>{if(failed)return;if(activeUrl!==url&&!fallbackUsed){fallbackUsed=true;activeUrl=url;report('HD unavailable; retrying 360p');if(hls){hls.destroy();hls=null;}load(url);}else fail(reason);};
+ const load=async(source)=>{try{activeUrl=source;target.dataset.requestedQuality=source.match(/playlist_(\d+)p/)?.[1]||'unknown';if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=source;}else{const Hls=await getHls();if(!Hls.isSupported())return fail();hls=new Hls({maxBufferLength:12,backBufferLength:8});hls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal)recover(data.type+': '+data.details);});hls.on(Hls.Events.MANIFEST_PARSED,play);hls.loadSource(source);hls.attachMedia(v);}}catch{recover('HLS setup failed');}};
+ const init=async()=>{if(initialized||failed)return;initialized=true;await load(await chooseQuality(url,hero));};
  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){init();play();}else v.pause();},{threshold:.15});observer.observe(target);if(hero)init();
  reduced.addEventListener('change',()=>{if(reduced.matches){manualPlay=false;v.pause();}else play();});
 }

@@ -97,3 +97,26 @@ dialog[open]{display:flex;flex-direction:column;max-height:min(90dvh,820px);over
 
 /* Local-only media and stable rendering. */
 :root{--display:'Space Grotesk',Arial,sans-serif;--body:'Manrope',Arial,sans-serif}.original-motion{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}.original-motion.is-ready{opacity:1}.motion-fallback.is-ready{opacity:1}.hero-media #hero-image,.gallery .media{filter:none;transform:none}.gallery .media video,.gallery .media img{filter:none;image-rendering:auto}.hero-media::after{pointer-events:none}
+
+/* Mobile-first hero: use the sharper close-up footage and keep the hairstyle visible. */
+#home .hero .hero-media #hero-image{background-position:50% 36%;width:54%}
+#hero-image .original-motion,#hero-image .motion-fallback{object-position:50% 36%}
+.hero-media::after{background:linear-gradient(90deg,#111112 0%,#111112 34%,#111112e6 43%,#11111220 66%,#11111200 100%),linear-gradient(0deg,#111112bf,transparent 38%)!important}
+.hero .orb{display:none}
+@media(max-width:700px){
+ .hero{height:auto;min-height:0;max-height:none;padding:0 5vw 22px;justify-content:flex-end;background:#111112;isolation:isolate}
+ .hero-media{position:relative;inset:auto;z-index:0;align-self:center;width:calc(100% / .9);height:clamp(290px,95vw,465px);flex:none;overflow:hidden;background:#111112;margin-bottom:-30px}
+ #home .hero .hero-media #hero-image{width:100%;height:100%;background-position:50% 32%}
+ #hero-image .original-motion,#hero-image .motion-fallback{object-position:50% 32%}
+ .hero-media::after{background:linear-gradient(0deg,#111112 0%,#11111268 18%,#11111200 42%)!important}
+ .hero-copy{position:relative;z-index:1;max-width:100%;padding-bottom:0;animation:none}
+ .hero-copy .eyebrow{color:#d3c8bc}
+ .hero h1{font-size:clamp(36px,10.8vw,73px);margin:14px 0 15px}
+ .hero-bottom{gap:12px;align-items:flex-start}
+ .hero-bottom p{max-width:100%;font-size:14px}
+ .hero-actions{gap:12px}
+ .hero-index{top:15px;z-index:1;right:5vw}
+ .hero-footer{position:relative;z-index:1;margin-top:24px}
+ .mobile-book{left:auto;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));width:auto;max-width:calc(100% - 28px);min-height:44px;padding:12px 18px;font-size:12px;box-shadow:0 5px 24px #0005}
+ .mobile-book.after-hero{display:none}
+}

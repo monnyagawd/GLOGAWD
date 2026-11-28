@@ -16,8 +16,8 @@ function mountMotion(target,id,label,hero=false){
  let visible=hero,initialized=false,fallback=null,blocked=false;
  const enabled=()=>visible&&!motionOff&&!reduced.matches&&!document.hidden;
  function clearFallback(){if(fallback){fallback.remove();fallback=null;}}
- function showFallback(){if(!enabled()||fallback)return;const img=new Image();img.className='motion-fallback';img.alt=label;fallback=img;img.onload=()=>{if(fallback===img&&enabled()){img.classList.add('is-ready');target.dataset.playback='animated fallback';}};img.onerror=()=>{if(fallback===img)clearFallback();};target.append(img);img.src='/motion/'+id+'.webp?v=fast3';}
- function attempt(){if(!enabled())return;if(blocked){showFallback();return;}if(!initialized){initialized=true;v.src='/motion/'+id+'.mp4?v=fast3';}v.muted=true;v.autoplay=true;const result=v.play();if(result?.catch)result.catch(e=>{if(enabled()&&e.name==='NotAllowedError'){blocked=true;v.pause();showFallback();}});}
+ function showFallback(){if(!enabled()||fallback)return;const img=new Image();img.className='motion-fallback';img.alt=label;fallback=img;img.onload=()=>{if(fallback===img&&enabled()){img.classList.add('is-ready');target.dataset.playback='animated fallback';}};img.onerror=()=>{if(fallback===img)clearFallback();};target.append(img);img.src='/motion/'+id+'.webp?v=hero5';}
+ function attempt(){if(!enabled())return;if(blocked){showFallback();return;}if(!initialized){initialized=true;v.src='/motion/'+id+'.mp4?v=hero5';}v.muted=true;v.autoplay=true;const result=v.play();if(result?.catch)result.catch(e=>{if(enabled()&&e.name==='NotAllowedError'){blocked=true;v.pause();showFallback();}});}
  v.addEventListener('loadeddata',()=>{v.classList.add('is-ready');});
  v.addEventListener('playing',()=>{if(!enabled()){v.pause();return;}clearFallback();target.dataset.playback='playing '+v.videoWidth+'x'+v.videoHeight;});
  v.addEventListener('error',()=>{blocked=true;showFallback();});
@@ -26,14 +26,17 @@ function mountMotion(target,id,label,hero=false){
  if('IntersectionObserver' in window){const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting&&entries[0].intersectionRatio>=.25;sync();},{threshold:[0,.25,.6]});observer.observe(target);}else visible=true;
  if(hero)sync();
 }
+const mobileBook=$('.mobile-book');
+const heroSection=$('.hero');
+if(mobileBook&&heroSection&&'IntersectionObserver' in window){mobileBook.classList.add('after-hero');const bookObserver=new IntersectionObserver(entries=>{mobileBook.classList.toggle('after-hero',entries[0].isIntersecting);},{threshold:0});bookObserver.observe(heroSection);}
 const motionControl=$('#motion-control');
 function syncMotion(){if(motionControl){motionControl.textContent=motionOff?'Enable motion':'Reduce motion';motionControl.setAttribute('aria-pressed',String(motionOff));}motionControllers.forEach(sync=>sync());}
 if(motionControl)motionControl.onclick=()=>{motionOff=!motionOff;syncMotion();};
 document.addEventListener('visibilitychange',syncMotion);reduced.addEventListener('change',syncMotion);
 
-const hero=new Image();hero.onload=()=>{$('#hero-image').dataset.poster='ready';$('#hero-image').style.backgroundImage='url("'+hero.src+'")';};hero.onerror=()=>{$('#hero-image').dataset.poster='failed';refreshMedia($('#hero-image'));};hero.src='/motion/01M3FAYAQHQ672D2YNRECCN5GN.jpg?v=fast3';
-mountMotion($('#hero-image'),streamFor('01M3FAYAQHQ672D2YNRECCN5GN'),'Original Glo’s Lab hairstyle video',true);
-['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');const placeholder=el('span','gallery-fallback','GLO / FILM '+String(i+1).padStart(2,'0'));m.append(placeholder);addImage(m,'/motion/'+id+'.jpg?v=fast3','Glo’s Lab portfolio');const cap=el('figcaption');cap.append(el('span','','GLO ARCHIVE'),el('span','','FILM / 0'+(i+1)));f.append(m,cap);$('#gallery').append(f);mountMotion(m,streamFor(id),'Glo’s Lab portfolio clip '+(i+1));});
+const hero=new Image();hero.onload=()=>{$('#hero-image').dataset.poster='ready';$('#hero-image').style.backgroundImage='url("'+hero.src+'")';};hero.onerror=()=>{$('#hero-image').dataset.poster='failed';refreshMedia($('#hero-image'));};hero.src='/motion/01M3FAYAQGETJX06P8PVQT7169.jpg?v=hero5';
+mountMotion($('#hero-image'),streamFor('01M3FAYAQGETJX06P8PVQT7169'),'Original Glo’s Lab hairstyle video',true);
+['01M3FAYAQGETJX06P8PVQT7169','01M3FAYAQGM74HMJV0TQW1XT8N','01M3FAYAQHSN1PG2J9KM3PT506'].forEach((id,i)=>{const f=el('figure'),m=el('div','media');const placeholder=el('span','gallery-fallback','GLO / FILM '+String(i+1).padStart(2,'0'));m.append(placeholder);addImage(m,'/motion/'+id+'.jpg?v=hero5','Glo’s Lab portfolio');const cap=el('figcaption');cap.append(el('span','','GLO ARCHIVE'),el('span','','FILM / 0'+(i+1)));f.append(m,cap);$('#gallery').append(f);mountMotion(m,streamFor(id),'Glo’s Lab portfolio clip '+(i+1));});
 const serviceText={
  extensions:'Explore a loc extension appointment.',
  repairs:'Request details for individual loc repair.',
